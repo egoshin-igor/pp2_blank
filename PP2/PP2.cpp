@@ -2,32 +2,35 @@
 #include "Bank.h"
 #include "BankClient.h"
 #include <string>
+#include "SyncPrimitiveType.h"
 
 using namespace std;
 
-int GetAllClientsBalance(CBank bank);
+int GetAllClientsBalance(CBank& bank);
 
 int main(int argc, char *argv[])
 {
 	int bankClientsQuantity;
-	if (argc != 2)
+	SyncPrimitiveType syncPrimitiveType;
+	if (argc != 3)
 	{
-		bankClientsQuantity = 8;
+		bankClientsQuantity = 2;
 	}
 	else
 	{
 		try
 		{
 			bankClientsQuantity = stoi(argv[1]);
+			syncPrimitiveType = (SyncPrimitiveType)stoi(argv[2]);
 		}
 		catch (exception ex)
 		{
-			cout << "<bankClientQuantity> must be a number";
+			cout << "program.exe <bank clients quantity> <synchronization primitive type>";
 			return 1;
 		}
 	}
 
-	CBank* bank = new CBank();
+	CBank* bank = new CBank(syncPrimitiveType);
 	for (int i = 0; i < bankClientsQuantity; i++)
 	{
 		bank->CreateClient();
@@ -53,7 +56,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-int GetAllClientsBalance(CBank bank)
+int GetAllClientsBalance(CBank& bank)
 {
 	int result = 0;
 	for each (CBankClient client in bank.GetCurrentClients())

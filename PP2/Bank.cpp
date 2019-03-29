@@ -1,12 +1,18 @@
 #include "Bank.h"
 #include <windows.h>
 
-CBank::CBank()
+CBank::CBank(SyncPrimitiveType syncPrimitiveType)
 {
+	InitializeCriticalSection(&m_csClientBalanceUpdate);
 	m_clients = std::vector<CBankClient>();
 	m_totalBalance = 0;
+	m_syncPrimitiveType = syncPrimitiveType;
 }
 
+CBank::~CBank()
+{
+	DeleteCriticalSection(&m_csClientBalanceUpdate);
+}
 
 CBankClient* CBank::CreateClient()
 {
@@ -24,6 +30,15 @@ std::vector<CBankClient> CBank::GetCurrentClients()
 
 void CBank::UpdateClientBalance(CBankClient &client, int value)
 {
+	if (m_syncPrimitiveType == SyncPrimitiveType::Mutex)
+	{
+		m_clientBalanceUpdateMutex.lock();
+	}
+	else if (m_syncPrimitiveType == SyncPrimitiveType::CriticalSection)
+	{
+		EnterCriticalSection(&m_csClientBalanceUpdate);
+	}
+
 	int totalBalance = GetTotalBalance();
 	std::cout << "Client " << client.GetId() << " initiates reading total balance. Total = " << totalBalance << "." << std::endl;
 
@@ -42,6 +57,15 @@ void CBank::UpdateClientBalance(CBankClient &client, int value)
 	}
 
 	SetTotalBalance(totalBalance);
+
+	if (m_syncPrimitiveType == SyncPrimitiveType::Mutex)
+	{
+		m_clientBalanceUpdateMutex.unlock();
+	}
+	else if (m_syncPrimitiveType == SyncPrimitiveType::CriticalSection)
+	{
+		LeaveCriticalSection(&m_csClientBalanceUpdate);
+	}
 }
 
 
