@@ -3,20 +3,38 @@
 #include "BankClient.h"
 #include <string>
 #include "SyncPrimitiveType.h"
+#include <vector>
 
 using namespace std;
 
 int GetAllClientsBalance(CBank& bank);
 
+void PrintHelp();
+
 int main(int argc, char *argv[])
 {
 	int bankClientsQuantity;
 	SyncPrimitiveType syncPrimitiveType;
-	if (argc != 3)
+	if (argc == 2 && (string)argv[1] == "./h")
+	{
+		PrintHelp();
+		return 1;
+	}
+
+	if (argc == 2)
 	{
 		bankClientsQuantity = 2;
+		try
+		{
+			syncPrimitiveType = (SyncPrimitiveType)stoi(argv[1]);
+		}
+		catch (exception ex)
+		{
+			PrintHelp();
+			return 1;
+		}
 	}
-	else
+	else if (argc == 3)
 	{
 		try
 		{
@@ -25,9 +43,10 @@ int main(int argc, char *argv[])
 		}
 		catch (exception ex)
 		{
-			cout << "program.exe <bank clients quantity> <synchronization primitive type>";
+			PrintHelp();
 			return 1;
 		}
+
 	}
 
 	CBank* bank = new CBank(syncPrimitiveType);
@@ -65,4 +84,10 @@ int GetAllClientsBalance(CBank& bank)
 	}
 
 	return result;
+}
+
+void PrintHelp()
+{
+	cout << "Type <program> <banksClientQuantity>(optional, default is 2) <syncPrimitive>";
+	cout << "Sync primitive types:" << endl << "0 - Mutex, 1 - CriticalSection, 2 - None";
 }
