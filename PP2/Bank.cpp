@@ -30,14 +30,7 @@ std::vector<CBankClient> CBank::GetCurrentClients()
 
 void CBank::UpdateClientBalance(CBankClient &client, int value)
 {
-	if (m_syncPrimitiveType == SyncPrimitiveType::Mutex)
-	{
-		m_clientBalanceUpdateMutex.lock();
-	}
-	else if (m_syncPrimitiveType == SyncPrimitiveType::CriticalSection)
-	{
-		EnterCriticalSection(&m_csClientBalanceUpdate);
-	}
+	LockByPrimitiveSyncType();
 
 	int totalBalance = GetTotalBalance();
 	std::cout << "Client " << client.GetId() << " initiates reading total balance. Total = " << totalBalance << "." << std::endl;
@@ -58,16 +51,8 @@ void CBank::UpdateClientBalance(CBankClient &client, int value)
 
 	SetTotalBalance(totalBalance);
 
-	if (m_syncPrimitiveType == SyncPrimitiveType::Mutex)
-	{
-		m_clientBalanceUpdateMutex.unlock();
-	}
-	else if (m_syncPrimitiveType == SyncPrimitiveType::CriticalSection)
-	{
-		LeaveCriticalSection(&m_csClientBalanceUpdate);
-	}
+	UnlockByPrimitiveSyncType();
 }
-
 
 int CBank::GetTotalBalance()
 {
@@ -88,4 +73,28 @@ void CBank::SetTotalBalance(int value)
 void CBank::SomeLongOperations()
 {
 	Sleep(1000);
+}
+
+void CBank::LockByPrimitiveSyncType()
+{
+	if (m_syncPrimitiveType == SyncPrimitiveType::Mutex)
+	{
+		m_clientBalanceUpdateMutex.lock();
+	}
+	else if (m_syncPrimitiveType == SyncPrimitiveType::CriticalSection)
+	{
+		EnterCriticalSection(&m_csClientBalanceUpdate);
+	}
+}
+
+void CBank::UnlockByPrimitiveSyncType()
+{
+	if (m_syncPrimitiveType == SyncPrimitiveType::Mutex)
+	{
+		m_clientBalanceUpdateMutex.unlock();
+	}
+	else if (m_syncPrimitiveType == SyncPrimitiveType::CriticalSection)
+	{
+		LeaveCriticalSection(&m_csClientBalanceUpdate);
+	}
 }

@@ -4,18 +4,29 @@
 #include <string>
 #include "SyncPrimitiveType.h"
 #include <vector>
+#include <optional>
 
 using namespace std;
 
 int GetAllClientsBalance(CBank& bank);
 
 void PrintHelp();
+optional<int> getParsed(string arg);
 
 int main(int argc, char *argv[])
 {
+	const string helpCommand = "./h";
+
 	int bankClientsQuantity;
 	SyncPrimitiveType syncPrimitiveType;
-	if (argc == 2 && (string)argv[1] == "./h")
+	if (argc == 2 && (string)argv[1] == helpCommand)
+	{
+		PrintHelp();
+		return 1;
+	}
+
+	optional<int> firstIntArg = getParsed(argv[1]);
+	if (!firstIntArg.has_value())
 	{
 		PrintHelp();
 		return 1;
@@ -24,29 +35,23 @@ int main(int argc, char *argv[])
 	if (argc == 2)
 	{
 		bankClientsQuantity = 2;
-		try
-		{
-			syncPrimitiveType = (SyncPrimitiveType)stoi(argv[1]);
-		}
-		catch (exception ex)
-		{
-			PrintHelp();
-			return 1;
-		}
+		syncPrimitiveType = (SyncPrimitiveType)firstIntArg.value();
 	}
 	else if (argc == 3)
 	{
-		try
-		{
-			bankClientsQuantity = stoi(argv[1]);
-			syncPrimitiveType = (SyncPrimitiveType)stoi(argv[2]);
-		}
-		catch (exception ex)
+		bankClientsQuantity = firstIntArg.value();
+		optional<int> secondIntArg = getParsed(argv[2]);
+		if (!secondIntArg.has_value())
 		{
 			PrintHelp();
 			return 1;
 		}
-
+		syncPrimitiveType = (SyncPrimitiveType)secondIntArg.value();
+	}
+	else
+	{
+		PrintHelp();
+		return 1;
 	}
 
 	CBank* bank = new CBank(syncPrimitiveType);
@@ -73,6 +78,18 @@ int main(int argc, char *argv[])
 	}
 
 	return 0;
+}
+
+optional<int> getParsed(string arg)
+{
+	try
+	{
+		return stoi(arg);
+	}
+	catch (exception ex)
+	{
+		return {};
+	}
 }
 
 int GetAllClientsBalance(CBank& bank)

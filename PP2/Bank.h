@@ -28,4 +28,6 @@ private:
 
 	void SetTotalBalance(int value);
 	void SomeLongOperations();
+	void LockByPrimitiveSyncType();
+	void UnlockByPrimitiveSyncType();
 };
